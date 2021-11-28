@@ -85,6 +85,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 
 /**
  * Implementation of a simple command line frontend for executing programs.
+ * todo 执行程序前端简单命令行的实现
  */
 public class CliFrontend {
 
@@ -100,6 +101,7 @@ public class CliFrontend {
 	private static final String ACTION_SAVEPOINT = "savepoint";
 
 	// configuration dir parameters
+	// todo 配置文件目录参数
 	private static final String CONFIG_DIRECTORY_FALLBACK_1 = "../conf";
 	private static final String CONFIG_DIRECTORY_FALLBACK_2 = "conf";
 
@@ -209,26 +211,31 @@ public class CliFrontend {
 
 	/**
 	 * Executions the run action.
-	 *
+	 * todo 执行run命令
 	 * @param args Command line arguments for the run action.
 	 */
 	protected void run(String[] args) throws Exception {
 		LOG.info("Running 'run' command.");
 
+		// todo 获取run动作默认的配置项
 		final Options commandOptions = CliFrontendParser.getRunCommandOptions();
+		// todo 根据用户指定的配置项，进行解析
 		final CommandLine commandLine = getCommandLine(commandOptions, args, true);
 
 		// evaluate help flag
+		// todo 判断是否有 help 标志，如果有则打印出run的相关用法
 		if (commandLine.hasOption(HELP_OPTION.getOpt())) {
 			CliFrontendParser.printHelpForRun(customCommandLines);
 			return;
 		}
 
+		/** todo  根据之前添加的顺序，挨个判断是否 active ：Generia、Yarn、Default*/
 		final CustomCommandLine activeCommandLine =
 				validateAndGetActiveCommandLine(checkNotNull(commandLine));
 
 		final ProgramOptions programOptions = ProgramOptions.create(commandLine);
 
+		/** todo 获取job的jar包和依赖 */
 		final List<URL> jobJars = getJobJarAndDependencies(programOptions);
 
 		final Configuration effectiveConfiguration = getEffectiveConfiguration(
@@ -625,7 +632,9 @@ public class CliFrontend {
 	}
 
 	public CommandLine getCommandLine(final Options commandOptions, final String[] args, final boolean stopAtNonOptions) throws CliArgsException {
+		// todo 合并默认选项和自定义配置选项
 		final Options commandLineOptions = CliFrontendParser.mergeOptions(commandOptions, customCommandLineOptions);
+		// todo 解析命令行参数
 		return CliFrontendParser.parse(commandLineOptions, args, stopAtNonOptions);
 	}
 
@@ -945,6 +954,9 @@ public class CliFrontend {
 
 	/**
 	 * Parses the command line arguments and starts the requested action.
+	 * todo 解析命令行参数，启动命令请求
+	 *
+	 * todo bin/flink run -t yarn-pre-job /opt/flink-1.12/examples/streaming/socketWindowWordCount.jar --port 9999
 	 *
 	 * @param args command line arguments of the client.
 	 * @return The return code of the program
@@ -952,6 +964,7 @@ public class CliFrontend {
 	public int parseAndRun(String[] args) {
 
 		// check for action
+		// todo 校验命令参数
 		if (args.length < 1) {
 			CliFrontendParser.printHelp(customCommandLines);
 			System.out.println("Please specify an action.");
@@ -959,13 +972,16 @@ public class CliFrontend {
 		}
 
 		// get action
+		// todo 获取操作命令
 		String action = args[0];
 
 		// remove action from parameters
+		// todo 从命令行参数中移除action
 		final String[] params = Arrays.copyOfRange(args, 1, args.length);
 
 		try {
 			// do action
+			// todo 执行命令
 			switch (action) {
 				case ACTION_RUN:
 					run(params);
@@ -1022,17 +1038,21 @@ public class CliFrontend {
 
 	/**
 	 * Submits the job based on the arguments.
+	 * todo 基于参数提交作业
 	 */
 	public static void main(final String[] args) {
 		EnvironmentInformation.logEnvironmentInfo(LOG, "Command Line Client", args);
 
 		// 1. find the configuration directory
+		// todo 1. 查找配置文件目录
 		final String configurationDirectory = getConfigurationDirectoryFromEnv();
 
 		// 2. load the global configuration
+		// todo 2. 加载全局配置
 		final Configuration configuration = GlobalConfiguration.loadConfiguration(configurationDirectory);
 
 		// 3. load the custom command lines
+		// todo 3. 加载自定义命令行，按照顺序 Generic、Yarn、Default
 		final List<CustomCommandLine> customCommandLines = loadCustomCommandLines(
 			configuration,
 			configurationDirectory);
@@ -1043,6 +1063,8 @@ public class CliFrontend {
 				customCommandLines);
 
 			SecurityUtils.install(new SecurityConfiguration(cli.configuration));
+
+			//todo 核心逻辑
 			int retCode = SecurityUtils.getInstalledContext()
 					.runSecured(() -> cli.parseAndRun(args));
 			System.exit(retCode);
@@ -1060,28 +1082,37 @@ public class CliFrontend {
 	// --------------------------------------------------------------------------------------------
 
 	public static String getConfigurationDirectoryFromEnv() {
+		// todo 获取flink中配置的 FLINK_CONF_DIR 目录
 		String location = System.getenv(ConfigConstants.ENV_FLINK_CONF_DIR);
 
+		//todo FLINK_CONF_DIR 不为空
 		if (location != null) {
+			//todo 检查当前目录是否存在
 			if (new File(location).exists()) {
+				// todo 存在则直接将 FLINK_CONF_DIR 目录返回
 				return location;
 			}
 			else {
+				// todo 如果当前目录不存在，则直接抛出异常
 				throw new RuntimeException("The configuration directory '" + location + "', specified in the '" +
 					ConfigConstants.ENV_FLINK_CONF_DIR + "' environment variable, does not exist.");
 			}
 		}
 		else if (new File(CONFIG_DIRECTORY_FALLBACK_1).exists()) {
+			// todo 如果 FLINK_CONF_DIR 为空，则检查 ../conf 目录是否存在，如果存在则直接返回
 			location = CONFIG_DIRECTORY_FALLBACK_1;
 		}
 		else if (new File(CONFIG_DIRECTORY_FALLBACK_2).exists()) {
+			// todo 如果 FLINK_CONF_DIR 为空，则检查 conf 目录是否存在，如果存在则直接返回
 			location = CONFIG_DIRECTORY_FALLBACK_2;
 		}
 		else {
+			// todo 如果三个配置目录都不存在，则直接抛出异常
 			throw new RuntimeException("The configuration directory was not specified. " +
 					"Please specify the directory containing the configuration file through the '" +
 				ConfigConstants.ENV_FLINK_CONF_DIR + "' environment variable.");
 		}
+		// todo 将配置文件路径返回
 		return location;
 	}
 
@@ -1098,12 +1129,15 @@ public class CliFrontend {
 		config.setInteger(RestOptions.PORT, address.getPort());
 	}
 
+	/** todo 加载自定义命令行 */
 	public static List<CustomCommandLine> loadCustomCommandLines(Configuration configuration, String configurationDirectory) {
 		List<CustomCommandLine> customCommandLines = new ArrayList<>();
+		// todo 1. 添加GenericCLI
 		customCommandLines.add(new GenericCLI(configuration, configurationDirectory));
 
 		//	Command line interface of the YARN session, with a special initialization here
 		//	to prefix all options with y/yarn.
+		// todo 2. YARN session的命令行，它是以 y/yarn 为前缀的特殊初始化的选项
 		final String flinkYarnSessionCLI = "org.apache.flink.yarn.cli.FlinkYarnSessionCli";
 		try {
 			customCommandLines.add(
@@ -1125,6 +1159,8 @@ public class CliFrontend {
 
 		//	Tips: DefaultCLI must be added at last, because getActiveCustomCommandLine(..) will get the
 		//	      active CustomCommandLine in order and DefaultCLI isActive always return true.
+		// todo 需要注意的是：DefaultCLI必须要加在最后，因为getActiveCustomCommandLine(..)会按照顺序加载
+		// todo 活跃的CustomCommandLine,并且DefaultCLI的isActive总是返回true
 		customCommandLines.add(new DefaultCLI());
 
 		return customCommandLines;
@@ -1136,8 +1172,11 @@ public class CliFrontend {
 
 	/**
 	 * Gets the custom command-line for the arguments.
+	 * todo 获取自定义命令行参数
 	 * @param commandLine The input to the command-line.
+	 * 		  todo commandLine 	输入的CommandLine
 	 * @return custom command-line which is active (may only be one at a time)
+	 *		todo 返回活跃的命令行参数（一次可能只有一个）
 	 */
 	public CustomCommandLine validateAndGetActiveCommandLine(CommandLine commandLine) {
 		LOG.debug("Custom commandlines: {}", customCommandLines);
@@ -1152,8 +1191,13 @@ public class CliFrontend {
 
 	/**
 	 * Loads a class from the classpath that implements the CustomCommandLine interface.
+	 *
+	 * todo 从类路径中加载所有 CustomCommandLine 接口的实现
+	 *
 	 * @param className The fully-qualified class name to load.
+	 * 					todo 要加载类的全限定名
 	 * @param params The constructor parameters
+	 * 				todo 构造参数
 	 */
 	private static CustomCommandLine loadCustomCommandLine(String className, Object... params) throws Exception {
 

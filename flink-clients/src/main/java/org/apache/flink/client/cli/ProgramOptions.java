@@ -69,10 +69,11 @@ public class ProgramOptions extends CommandLineOptions {
 
 	protected ProgramOptions(CommandLine line) throws CliArgsException {
 		super(line);
-
+		// todo -c
 		this.entryPointClass = line.hasOption(CLASS_OPTION.getOpt()) ?
 			line.getOptionValue(CLASS_OPTION.getOpt()) : null;
 
+		// todo -j
 		this.jarFilePath = line.hasOption(JAR_OPTION.getOpt()) ?
 			line.getOptionValue(JAR_OPTION.getOpt()) : null;
 
@@ -113,6 +114,7 @@ public class ProgramOptions extends CommandLineOptions {
 	}
 
 	protected String[] extractProgramArgs(CommandLine line) {
+		/** todo yd */
 		String[] args = line.hasOption(ARGS_OPTION.getOpt()) ?
 			line.getOptionValues(ARGS_OPTION.getOpt()) :
 			line.getArgs();
@@ -175,7 +177,9 @@ public class ProgramOptions extends CommandLineOptions {
 		SavepointRestoreSettings.toConfiguration(getSavepointRestoreSettings(), configuration);
 	}
 
+	/** todo 创建ProgramOptions */
 	public static ProgramOptions create(CommandLine line) throws CliArgsException {
+		// todo 是否是python入口，获取包含python依赖
 		if (isPythonEntryPoint(line) || containsPythonDependencyOptions(line)) {
 			return createPythonProgramOptions(line);
 		} else {

@@ -37,6 +37,8 @@ import java.util.stream.Collectors;
 /**
  * A simple command line parser (based on Apache Commons CLI) that extracts command
  * line options.
+ *
+ * todo 一个简单的命令行解析器（基于 Apache Commons CLI），用于提取命令行选项。
  */
 public class CliFrontendParser {
 
@@ -266,7 +268,9 @@ public class CliFrontendParser {
 	}
 
 	public static Options getRunCommandOptions() {
+		//todo 构建通用配置选项
 		Options options = buildGeneralOptions(new Options());
+		// todo 获取程序特有选项
 		options = getProgramSpecificOptions(options);
 		options.addOption(SAVEPOINT_PATH_OPTION);
 		return options.addOption(SAVEPOINT_ALLOW_NON_RESTORED_OPTION);
@@ -515,7 +519,7 @@ public class CliFrontendParser {
 
 	/**
 	 * Merges the given {@link Options} into a new Options object.
-	 *
+	 * todo 将给定的 {@link Options} 合并到一个新的 Options 对象中
 	 * @param optionsA options to merge, can be null if none
 	 * @param optionsB options to merge, can be null if none
 	 * @return

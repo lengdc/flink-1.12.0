@@ -24,6 +24,7 @@ import java.util.Properties;
 
 /**
  * Unmodifiable version of the Configuration class.
+ * todo Configuration 类的不可修改版本
  */
 @Public
 public class UnmodifiableConfiguration extends Configuration {
@@ -34,6 +35,7 @@ public class UnmodifiableConfiguration extends Configuration {
 	 * Creates a new UnmodifiableConfiguration, which holds a copy of the given configuration
 	 * that cannot be altered.
 	 *
+	 * todo 创建一个UnmodifiableConfiguration，这个类包含无法更改的给定配置的副本
 	 * @param config The configuration with the original contents.
 	 */
 	public UnmodifiableConfiguration(Configuration config) {
